@@ -1,5 +1,7 @@
 # Xiaohongshu Automation Skill
 
+English | [简体中文](README_zh.md)
+
 > Auto like, comment, and post on Xiaohongshu (小红书/RedNote) via the `xhs` CLI — with anti-detection, CAPTCHA cooldown, and LLM-driven content-aware comments.
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
