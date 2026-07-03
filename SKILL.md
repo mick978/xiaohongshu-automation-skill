@@ -140,15 +140,28 @@ python3 scripts/xhs_llm_helper.py --search
 # 查询是否已互动
 python3 scripts/xhs_llm_helper.py --check <note_id> [user_id]
 
-# 执行互动（like + comment）
+# 执行互动（like + comment + 自动清理下载的图片）
 python3 scripts/xhs_llm_helper.py --post <url> <note_id> <user_id> "评论内容"
 
 # 查看状态
 python3 scripts/xhs_llm_helper.py --status
 
-# 下载封面图（给 vision_analyze 用）
+# 下载封面图（给 vision_analyze 用，自动注册清理）
 python3 scripts/xhs_llm_helper.py --image <url>
+
+# 手动清理所有已下载的图片
+python3 scripts/xhs_llm_helper.py --cleanup
+
+# 发帖（成功后自动删除本地图片）
+python3 scripts/xhs_llm_helper.py --publish --images <dir> --title "标题" --body "正文"
 ```
+
+### 自动清理机制
+
+- **评论流程**：`--image` 下载的封面图注册到 cleanup 追踪文件，`--post` 完成互动后自动删除
+- **发布流程**：`--publish` 发帖成功后自动删除 `--images` 目录下的图片文件，空目录也会删除
+- **手动清理**：`--cleanup` 随时清理所有追踪中的下载图片
+- **失败不删**：发帖失败时保留图片，方便重试
 
 ### 评论生成铁律
 

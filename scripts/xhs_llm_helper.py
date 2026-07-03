@@ -6,7 +6,9 @@ xhs_llm_helper.py — Helper for LLM-driven xhs interaction.
   --check <note_id> [user_id]       : Check if note/user already interacted → safe_to_interact boolean
   --post <url> <note_id> <user_id> "<comment>"  : Like + comment + update history (with pre_check dedup guard)
   --status                          : Show daily count + cooldown status
-  --image <url>                     : Download image to /tmp for vision_analyze
+  --image <url>                     : Download image to /tmp for vision_analyze (auto-tracked for cleanup)
+  --cleanup                         : Manually delete all tracked downloaded images
+  --publish --images <dir> --title "标题" [--body "正文"]  : Post a note, then delete local images on success
 """
 import sys, os, json, subprocess, time, urllib.request
 from pathlib import Path
@@ -20,6 +22,7 @@ HISTORY_FILE = STATE_DIR / "xhs_interact_history.json"
 DAILY_FILE = STATE_DIR / "xhs_daily_count.json"
 COOLDOWN_FILE = STATE_DIR / "xhs_auto_interact_cooldown.json"
 IMG_DIR = Path(os.environ.get("XHS_IMG_DIR", str(Path.home() / ".hermes" / "state" / "xhs_images")))
+IMG_CLEANUP_FILE = STATE_DIR / "xhs_img_cleanup.json"  # tracks downloaded images for auto-cleanup
 
 # ── Config ──
 # Customize for your niche, or set XHS_KEYWORDS env var (comma-separated)
@@ -195,10 +198,16 @@ def do_post_with_url(url: str, note_id: str, user_id: str, comment: str):
         add_to_history(hist, note_id, user_id)
         increment_daily_count(1)
 
+    # Auto-cleanup downloaded images after interaction
+    deleted = cleanup_images()
+    if deleted:
+        pass  # silent in JSON mode; could add to response if needed
+
     print(json.dumps({
         "like_ok": like_ok,
         "comment_ok": comment_ok,
-        "note_id": note_id
+        "note_id": note_id,
+        "images_cleaned": deleted
     }, ensure_ascii=False))
 
 # ── Check mode (query whether a note has been interacted) ──
@@ -224,7 +233,8 @@ def do_status():
     }, ensure_ascii=False))
 
 # ── Image download mode ──
-def do_image(url: str):
+def do_image(url: str) -> Optional[str]:
+    """Download image to IMG_DIR, register for auto-cleanup, return path."""
     IMG_DIR.mkdir(parents=True, exist_ok=True)
     # Determine extension
     ext = ".jpg"
@@ -241,14 +251,46 @@ def do_image(url: str):
         })
         with urllib.request.urlopen(req, timeout=15) as resp:
             fpath.write_bytes(resp.read())
+        # Register for auto-cleanup
+        cleanup_list: List[str] = []
+        if IMG_CLEANUP_FILE.exists():
+            try:
+                cleanup_list = json.loads(IMG_CLEANUP_FILE.read_text())
+            except:
+                pass
+        cleanup_list.append(str(fpath))
+        IMG_CLEANUP_FILE.write_text(json.dumps(cleanup_list, ensure_ascii=False))
         print(json.dumps({"path": str(fpath), "ok": True}))
+        return str(fpath)
     except Exception as e:
         print(json.dumps({"error": str(e), "ok": False}))
+        return None
+
+# ── Cleanup downloaded images ──
+def cleanup_images():
+    """Delete all tracked downloaded images. Called after interaction is done."""
+    if not IMG_CLEANUP_FILE.exists():
+        return 0
+    try:
+        cleanup_list = json.loads(IMG_CLEANUP_FILE.read_text())
+    except:
+        cleanup_list = []
+    deleted = 0
+    for fpath_str in cleanup_list:
+        try:
+            p = Path(fpath_str)
+            if p.exists():
+                p.unlink()
+                deleted += 1
+        except:
+            pass
+    IMG_CLEANUP_FILE.unlink()
+    return deleted
 
 # ── Main ──
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: xhs_llm_helper.py [--search|--post|--check|--status|--image]")
+        print("Usage: xhs_llm_helper.py [--search|--post|--check|--status|--image|--cleanup|--publish]")
         sys.exit(1)
 
     mode = sys.argv[1]
@@ -269,6 +311,72 @@ if __name__ == "__main__":
             print(json.dumps({"error": "need url"}))
             sys.exit(1)
         do_image(sys.argv[2])
+    elif mode == "--cleanup":
+        deleted = cleanup_images()
+        print(json.dumps({"images_cleaned": deleted, "ok": True}))
+    elif mode == "--publish":
+        # --publish --images <dir> --title "标题" --body "正文"
+        # Publishes a note, then deletes the local image files.
+        import shutil
+        title = ""
+        body = ""
+        img_dir = ""
+        i = 2
+        while i < len(sys.argv):
+            if sys.argv[i] == "--title" and i + 1 < len(sys.argv):
+                title = sys.argv[i + 1]; i += 2
+            elif sys.argv[i] == "--body" and i + 1 < len(sys.argv):
+                body = sys.argv[i + 1]; i += 2
+            elif sys.argv[i] == "--images" and i + 1 < len(sys.argv):
+                img_dir = sys.argv[i + 1]; i += 2
+            else:
+                i += 1
+        if not title or not img_dir:
+            print(json.dumps({"error": "need: --images <dir> --title \"标题\" [--body \"正文\"]"}))
+            sys.exit(1)
+        # Collect image files
+        img_path = Path(img_dir)
+        if not img_path.is_dir():
+            print(json.dumps({"error": f"image dir not found: {img_dir}"}))
+            sys.exit(1)
+        img_files = sorted([f for f in img_path.iterdir()
+                           if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")])
+        if not img_files:
+            print(json.dumps({"error": "no image files found"}))
+            sys.exit(1)
+        # Build xhs post command
+        post_args = ["post"]
+        for f in img_files:
+            post_args += ["--images", str(f)]
+        post_args += ["--title", title]
+        if body:
+            post_args += ["--body", body]
+        stdout, stderr, rc = run_xhs(post_args)
+        post_ok = False
+        try:
+            post_ok = json.loads(stdout).get("ok", False)
+        except:
+            pass
+        # Delete local images after successful post
+        files_deleted = 0
+        if post_ok:
+            for f in img_files:
+                try:
+                    f.unlink()
+                    files_deleted += 1
+                except:
+                    pass
+            # Also try to remove the directory if empty
+            try:
+                img_path.rmdir()
+            except:
+                pass
+        print(json.dumps({
+            "post_ok": post_ok,
+            "files_deleted": files_deleted,
+            "dir_removed": not img_path.exists(),
+            "stderr": stderr[:200] if stderr else ""
+        }, ensure_ascii=False))
     elif mode == "--post":
         # --post <url> <note_id> <user_id> "<comment>"
         if len(sys.argv) < 6:

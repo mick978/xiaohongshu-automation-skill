@@ -90,6 +90,8 @@ python3 scripts/xhs_llm_helper.py --search    # Find candidates
 python3 scripts/xhs_llm_helper.py --status    # Check daily count
 python3 scripts/xhs_llm_helper.py --check <note_id>  # Dedup check
 python3 scripts/xhs_llm_helper.py --post <url> <note_id> <user_id> "comment text"
+python3 scripts/xhs_llm_helper.py --cleanup   # Delete tracked downloaded images
+python3 scripts/xhs_llm_helper.py --publish --images <dir> --title "title" --body "body"
 ```
 
 ## Scripts
@@ -97,7 +99,7 @@ python3 scripts/xhs_llm_helper.py --post <url> <note_id> <user_id> "comment text
 | Script | Purpose |
 |--------|---------|
 | `xhs.sh` | Smart wrapper — lazy-installs xhs CLI on first use |
-| `xhs_llm_helper.py` | **Main helper** for LLM-driven cron: search, post, check, status, image download |
+| `xhs_llm_helper.py` | **Main helper** for LLM-driven cron: search, post, check, status, image download, publish with auto-cleanup |
 | `xhs_auto_interact.py` | Standalone rule-based auto-interact (no LLM needed) |
 | `xhs_workflow.py` | One-shot workflow: search, list, batch read, download images |
 | `xhs_inject_cookies.py` | Cookie injection from DevTools export |

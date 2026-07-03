@@ -90,6 +90,8 @@ python3 scripts/xhs_llm_helper.py --search    # 搜索候选
 python3 scripts/xhs_llm_helper.py --status    # 查看日计数
 python3 scripts/xhs_llm_helper.py --check <note_id>  # 去重检查
 python3 scripts/xhs_llm_helper.py --post <url> <note_id> <user_id> "评论内容"
+python3 scripts/xhs_llm_helper.py --cleanup   # 手动清理已下载的图片
+python3 scripts/xhs_llm_helper.py --publish --images <dir> --title "标题" --body "正文"  # 发帖+自动清理
 ```
 
 ## 脚本说明
@@ -97,7 +99,7 @@ python3 scripts/xhs_llm_helper.py --post <url> <note_id> <user_id> "评论内容
 | 脚本 | 用途 |
 |------|------|
 | `xhs.sh` | 智能封装 — 首次使用自动安装 xhs CLI |
-| `xhs_llm_helper.py` | **主 helper**：搜索、互动、去重、计数、图片下载 |
+| `xhs_llm_helper.py` | **主 helper**：搜索、互动、去重、计数、图片下载、发帖+自动清理 |
 | `xhs_auto_interact.py` | 独立规则引擎互动（无需 LLM） |
 | `xhs_workflow.py` | 一站式工作流：搜索→列表→批量阅读→下载图片 |
 | `xhs_inject_cookies.py` | DevTools cookie 注入 |
