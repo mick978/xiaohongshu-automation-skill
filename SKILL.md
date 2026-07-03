@@ -272,21 +272,13 @@ def main():
 
 ## References
 
-- `references/README.md` — 完整上游 README（80+ 行命令大全）
-- `references/SCHEMA.md` — JSON 输出 envelope 规范
 - `references/content-aware-comments.md` — 内容感知评论生成算法
 - `references/captcha-cooldown-lock.md` — CAPTCHA 熔断锁模式
 - `references/interaction-deduplication.md` — 互动去重机制
 - `references/llm-driven-interact-cron.md` — LLM 驱动 cron 架构
-- `references/auto-post-and-interact.md` — 自动互动+发文脚本模式
 - `references/cookie-inject-workaround.md` — Cookie 注入方案
 - `references/viral-caption-patterns.md` — 爆款文案套路
-- `references/photo-to-post-workflow.md` — 实拍照片→发布工作流
-- `references/batch-image-people-filter.md` — 批量图片人物筛选
 - `references/search-extraction-patterns.md` — 多关键词搜索提取模式
-- `references/premium-card-design.md` — 高级卡片设计
-- `references/text-card-generation.md` — 无图发帖文字卡片生成
-- `references/targeted-user-interaction.md` — 指定用户互动工作流
 
 ## 工具脚本
 

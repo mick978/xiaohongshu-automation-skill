@@ -162,21 +162,13 @@ xiaohongshu-automation-skill/
 │   ├── xhs_inject_cookies.py   # Cookie 注入
 │   └── captcha_cooldown.py     # 熔断锁模块
 └── references/
-    ├── README.md               # xhs CLI 完整命令参考
-    ├── SCHEMA.md               # JSON 输出规范
     ├── content-aware-comments.md
     ├── captcha-cooldown-lock.md
     ├── interaction-deduplication.md
     ├── llm-driven-interact-cron.md
-    ├── auto-post-and-interact.md
     ├── cookie-inject-workaround.md
     ├── viral-caption-patterns.md
-    ├── photo-to-post-workflow.md
-    ├── batch-image-people-filter.md
-    ├── search-extraction-patterns.md
-    ├── premium-card-design.md
-    ├── text-card-generation.md
-    └── targeted-user-interaction.md
+    └── search-extraction-patterns.md
 ```
 
 ## 上游

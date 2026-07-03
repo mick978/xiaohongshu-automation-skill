@@ -161,21 +161,13 @@ xiaohongshu-automation-skill/
 │   ├── xhs_inject_cookies.py   # Cookie injection
 │   └── captcha_cooldown.py     # Reusable cooldown module
 └── references/
-    ├── README.md               # Full xhs CLI command reference
-    ├── SCHEMA.md               # JSON output schema
     ├── content-aware-comments.md
     ├── captcha-cooldown-lock.md
     ├── interaction-deduplication.md
     ├── llm-driven-interact-cron.md
-    ├── auto-post-and-interact.md
     ├── cookie-inject-workaround.md
     ├── viral-caption-patterns.md
-    ├── photo-to-post-workflow.md
-    ├── batch-image-people-filter.md
-    ├── search-extraction-patterns.md
-    ├── premium-card-design.md
-    ├── text-card-generation.md
-    └── targeted-user-interaction.md
+    └── search-extraction-patterns.md
 ```
 
 ## Upstream
